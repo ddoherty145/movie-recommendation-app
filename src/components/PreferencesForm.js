@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 
-const PreferencesForm = ({onSubmitPerences}) => { // State management
+const PreferencesForm = ({ onSubmitPreferences }) => {
     const [preferences, setPreferences] = useState({
         mediaType: 'movie',
         genres: [],
         yearFrom: 2000,
         yearTo: 2025,
-        minrating: 7,
+        minRating: 7,
         includeAdult: false,
     });
 
-    const genreOptions = [ // Genre options
+    const genreOptions = [
         { id: 28, name: 'Action' },
         { id: 12, name: 'Adventure' },
         { id: 16, name: 'Animation' },
@@ -34,34 +34,26 @@ const PreferencesForm = ({onSubmitPerences}) => { // State management
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
-        
-        if (type === 'checkbox') {
-          setPreferences({ ...preferences, [name]: checked });
-        } else {
-          setPreferences({ ...preferences, [name]: value });
-        }
-      };
 
-    const handleGenreChange = (e) => { // Handle genre change
-        const genreId = parseInt(e.target.value, 10);
-
-        // If the genre is already selected, remove it; otherwise, add it
-        if (preferences.genres.includes(genreId)) {
-            setPreferences({
-                ...preferences,
-                genres: preferences.genres.filter((id) => id !== genreId)
-            });
-        } else {
-            setPreferences({
-                ...preferences,
-                genres: [...preferences.genres, genreId]
-            });
-        }
+        setPreferences((prev) => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
     };
 
-    const handleSubmit = (e) => { // Handle submit
+    const handleGenreChange = (e) => {
+        const genreId = parseInt(e.target.value, 10);
+        setPreferences((prev) => ({
+            ...prev,
+            genres: prev.genres.includes(genreId)
+                ? prev.genres.filter((id) => id !== genreId)
+                : [...prev.genres, genreId]
+        }));
+    };
+
+    const handleSubmit = (e) => {
         e.preventDefault();
-        onSubmitPerences(preferences);
+        onSubmitPreferences(preferences);
     };
 
     return (
@@ -71,14 +63,14 @@ const PreferencesForm = ({onSubmitPerences}) => { // State management
             <form onSubmit={handleSubmit}>
                 <div className="mb-4">
                     {/* Media type */}
-                    <label className="block mb-2 font-medium">What are you in the modd for?</label>
+                    <label className="block mb-2 font-medium">What are you in the mood for?</label>
                     <div className="flex gap-4">
                         <label className="flex items-center gap-2">
                             <input
-                                type="ratio"
+                                type="radio"
                                 name="mediaType"
                                 value="movie"
-                                check={preferences.mediaType === 'movie'}
+                                checked={preferences.mediaType === 'movie'}
                                 onChange={handleChange}
                                 className="mr-2"
                             />
@@ -89,26 +81,25 @@ const PreferencesForm = ({onSubmitPerences}) => { // State management
                                 type="radio"
                                 name="mediaType"
                                 value="tv"
-                                check={preferences.mediaType === 'tv'}
+                                checked={preferences.mediaType === 'tv'}
                                 onChange={handleChange}
                                 className="mr-2"
                             />
                             TV Show
                         </label>
-
                     </div>
                 </div>
 
                 {/* Genres */}
                 <div className="mb-4">
-                    <label className="block mb-2 font-medium"> Select Genres (multiple allowed)</label>
+                    <label className="block mb-2 font-medium">Select Genres (multiple allowed)</label>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        {genreOptions.map(genre => (
+                        {genreOptions.map((genre) => (
                             <label key={genre.id} className="flex items-center gap-2">
                                 <input
                                     type="checkbox"
                                     value={genre.id}
-                                    checked={preferences.genres.incliudes(genre.id)}
+                                    checked={preferences.genres.includes(genre.id)}
                                     onChange={handleGenreChange}
                                     className="mr-2"
                                 />
@@ -146,13 +137,13 @@ const PreferencesForm = ({onSubmitPerences}) => { // State management
                                 className="p-2 border rounded w-full"
                             />
                         </div>
-                      </div>
-                  </div>
-                  
-                  {/* Minimum rating Slider */}
-                  <div className="mb-4">
+                    </div>
+                </div>
+
+                {/* Minimum rating Slider */}
+                <div className="mb-4">
                     <label className="block mb-2 font-medium">
-                        Minimum Rating: {preferences.minrating}/10
+                        Minimum Rating: {preferences.minRating}/10
                     </label>
                     <input
                         type="range"
@@ -161,33 +152,34 @@ const PreferencesForm = ({onSubmitPerences}) => { // State management
                         max="10"
                         step="0.5"
                         value={preferences.minRating}
-                        onChange="w-full"
+                        onChange={handleChange}
+                        className="w-full"
                     />
-                  </div>
+                </div>
 
-                  {/* Adult Content */}
-                    <div className="mb-4">
-                        <label className="flex items-center">
-                            <input
-                                type="checkbx"
-                                name="includeAdult"
-                                checked={preferences.includeAdult}
-                                onChange={handleChange}
-                                className="mr-2"
-                                />
-                                Include adult content
-                        </label>
-                    </div>
+                {/* Adult Content */}
+                <div className="mb-4">
+                    <label className="flex items-center">
+                        <input
+                            type="checkbox"
+                            name="includeAdult"
+                            checked={preferences.includeAdult}
+                            onChange={handleChange}
+                            className="mr-2"
+                        />
+                        Include adult content
+                    </label>
+                </div>
 
-                    {/* Submit button */}
-                    <button
-                        type="submit"
-                        className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition duration-200">
-                            Find Recommendations
-                        </button>
+                {/* Submit button */}
+                <button
+                    type="submit"
+                    className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition duration-200">
+                    Find Recommendations
+                </button>
             </form>
         </div>
     );
-}
+};
 
 export default PreferencesForm;
