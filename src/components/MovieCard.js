@@ -19,13 +19,6 @@ const MovieCard = ({ item, onSelect }) => {
     ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
     : '/api/placeholder/300/450'; // Placeholder for missing images
   
-  // Handle click on the card
-  const handleCardClick = () => {
-    if (onSelect) {
-      onSelect(item);
-    }
-  };
-  
   // Generate a color for the rating badge based on score
   const getRatingColor = (score) => {
     if (score === 'NR') return 'bg-gray-500';
@@ -38,7 +31,7 @@ const MovieCard = ({ item, onSelect }) => {
   return (
     <div 
       className="movie-card bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-200 hover:shadow-xl hover:scale-105 cursor-pointer"
-      onClick={handleCardClick}
+      onClick={() => onSelect(item)}
     >
       {/* Poster Image */}
       <div className="relative h-64 overflow-hidden">

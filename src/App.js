@@ -3,7 +3,8 @@ import PreferencesForm from './components/PreferencesForm';
 import MovieCard from './components/MovieCard';
 import apiService from './services/api';
 import SearchBar from './components/SearchBar';
-import MovieDetails from './components/MovieDetail'; // Correct import
+import MovieDetails from './components/MovieDetail'; 
+import MovieList from './components/MovieList'; 
 
 // Replace with your actual API key
 const API_KEY = process.env.REACT_APP_TMDB_API_KEY;
@@ -17,15 +18,15 @@ function App() {
   const [error, setError] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
-  const [selectedMovie, setSelectedMovie] = useState(null);
   const [genres, setGenres] = useState({});
+  const [activeView, setActiveView] = useState('recommendations'); // 'recommendations' or 'search'
 
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
         setLoading(true);
         if (!API_KEY || API_KEY === 'YOUR_TMDB_API_KEY') {
-          throw new Error('Please set your TMDB API key in App.js');
+          throw new Error('Please set your TMDB API key in .env file');
         }
 
         const movieGenres = await apiService.getGenres('movie');
@@ -56,41 +57,17 @@ function App() {
 
   const handleSearch = async (query) => {
     try {
+      setLoading(true);
       const results = await apiService.searchMedia(query, 'movie');
       setSearchResults(results.results);
+      setActiveView('search'); // Switch to search results view
       setError(null);
+      setLoading(false);
     } catch (err) {
       console.error("Error during search:", err);
       setError("Failed to fetch movies. Please try again.");
+      setLoading(false);
     }
-  };
-
-  const handleMovieClick = async (movieId) => {
-    try {
-      const details = await apiService.getDetails(movieId, 'movie');
-
-      // Map API response to the format expected by MovieDetails
-      const movieData = {
-        title: details.title,
-        releaseDate: details.release_date,
-        poster: details.poster_path ? `https://image.tmdb.org/t/p/w500${details.poster_path}` : null,
-        director: details.credits.crew.find(member => member.job === 'Director')?.name || "Unknown",
-        genres: details.genres.map(g => g.name),
-        runtime: details.runtime,
-        rating: details.vote_average,
-        plot: details.overview,
-        cast: details.credits.cast.slice(0, 10).map(actor => actor.name) // limit to 10 actors
-      };
-
-      setSelectedMovie(movieData); // Set movie details
-    } catch (err) {
-      console.error("Error fetching movie details:", err);
-      setError("Could not fetch movie details."); // Handle errors
-    }
-  };
-
-  const handleCloseDetails = () => {
-    setSelectedMovie(null); // Close the MovieDetails modal
   };
 
   const handleSubmitPreferences = async (preferences) => {
@@ -106,6 +83,7 @@ function App() {
         setRecommendations([]);
       } else {
         setRecommendations(data.results);
+        setActiveView('recommendations'); // Switch to recommendations view
       }
 
       setLoading(false);
@@ -142,6 +120,24 @@ function App() {
     }
   };
 
+  const handleCloseDetails = () => {
+    setSelectedItem(null); // Close the MovieDetails modal
+  };
+
+  // Function to map genre IDs to names for the MovieCard component
+  const getGenreNames = (genreIds) => {
+    if (!genreIds) return [];
+    return genreIds.map(id => genres[id] || `Genre ${id}`);
+  };
+
+  // Enhanced movie data with genre names
+  const getEnhancedMovieData = (movies) => {
+    return movies.map(movie => ({
+      ...movie,
+      genreNames: getGenreNames(movie.genre_ids)
+    }));
+  };
+
   return (
     <div className="app min-h-screen bg-gray-50">
       <header className="bg-blue-600 text-white text-center py-6">
@@ -153,7 +149,7 @@ function App() {
         {API_KEY === 'YOUR_TMDB_API_KEY' && (
           <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
             <p className="font-bold">API Key Missing</p>
-            <p>Please replace 'YOUR_TMDB_API_KEY' with your actual TMDB API key in App.js</p>
+            <p>Please set your TMDB API key in the .env file as REACT_APP_TMDB_API_KEY=your_key_here</p>
           </div>
         )}
 
@@ -170,30 +166,58 @@ function App() {
           </div>
         )}
 
-        {/* Results Section */}
-        <section className="mt-8">
-          {loading ? (
-            <div className="text-center py-12">
-              <p className="text-gray-600">Loading...</p>
-            </div>
-          ) : (
-            <>
-              <h2 className="text-2xl font-bold mb-4">
-                {recommendations.length > 0 ? 'Results' : 'Start by searching or selecting your preferences'}
-              </h2>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                {recommendations.map((item) => (
-                  <MovieCard key={item.id} item={item} onSelect={handleSelectItem} />
-                ))}
-              </div>
-            </>
-          )}
-        </section>
-
-        {/* Movie Details Modal */}
-        {selectedItem && (
+        {/* Show detailed view or list view */}
+        {selectedItem ? (
           <MovieDetails movie={selectedItem} onClose={handleCloseDetails} />
+        ) : (
+          <section className="mt-8">
+            {/* View Selection Tabs */}
+            {searchResults.length > 0 && (
+              <div className="flex mb-4 border-b">
+                <button 
+                  className={`px-4 py-2 ${activeView === 'recommendations' ? 'text-blue-600 border-b-2 border-blue-600 font-medium' : 'text-gray-500'}`}
+                  onClick={() => setActiveView('recommendations')}
+                >
+                  Recommendations
+                </button>
+                <button 
+                  className={`px-4 py-2 ${activeView === 'search' ? 'text-blue-600 border-b-2 border-blue-600 font-medium' : 'text-gray-500'}`}
+                  onClick={() => setActiveView('search')}
+                >
+                  Search Results
+                </button>
+              </div>
+            )}
+
+            {loading ? (
+              <div className="text-center py-12">
+                <p className="text-gray-600">Loading...</p>
+              </div>
+            ) : (
+              <>
+                {activeView === 'search' && searchResults.length > 0 ? (
+                  <MovieList 
+                    movies={getEnhancedMovieData(searchResults)} 
+                    onSelectMovie={handleSelectItem} 
+                    isLoading={loading} 
+                    error={error} 
+                  />
+                ) : (
+                  <>
+                    <h2 className="text-2xl font-bold mb-4">
+                      {recommendations.length > 0 ? 'Recommendations' : 'Start by searching or selecting your preferences'}
+                    </h2>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                      {getEnhancedMovieData(recommendations).map((item) => (
+                        <MovieCard key={item.id} item={item} onSelect={handleSelectItem} />
+                      ))}
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+          </section>
         )}
       </main>
 
