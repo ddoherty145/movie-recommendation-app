@@ -3,6 +3,7 @@ import PreferencesForm from './components/PreferencesForm';
 import MovieCard from './components/MovieCard';
 import apiService from './services/api';
 import SearchBar from './components/SearchBar';
+import MovieDetails from './components/MovieDetail'; // Correct import
 
 // Replace with your actual API key
 const API_KEY = process.env.REACT_APP_TMDB_API_KEY;
@@ -15,6 +16,8 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [searchResults, setSearchResults] = useState([]);
+  const [selectedMovie, setSelectedMovie] = useState(null);
   const [genres, setGenres] = useState({});
 
   useEffect(() => {
@@ -53,25 +56,41 @@ function App() {
 
   const handleSearch = async (query) => {
     try {
-      setLoading(true);
+      const results = await apiService.searchMedia(query, 'movie');
+      setSearchResults(results.results);
       setError(null);
-
-      const searchResults = await apiService.searchMedia(query, 'movie');
-
-      if (!searchResults.results || searchResults.results.length === 0) {
-        setError('No results found. Try a different search.');
-        setRecommendations([]);
-      } else {
-        setRecommendations(searchResults.results);
-      }
-
-      setLoading(false);
     } catch (err) {
-      console.error('Error during search:', err);
-      setError(`Error: ${err.message}`);
-      setRecommendations([]);
-      setLoading(false);
+      console.error("Error during search:", err);
+      setError("Failed to fetch movies. Please try again.");
     }
+  };
+
+  const handleMovieClick = async (movieId) => {
+    try {
+      const details = await apiService.getDetails(movieId, 'movie');
+
+      // Map API response to the format expected by MovieDetails
+      const movieData = {
+        title: details.title,
+        releaseDate: details.release_date,
+        poster: details.poster_path ? `https://image.tmdb.org/t/p/w500${details.poster_path}` : null,
+        director: details.credits.crew.find(member => member.job === 'Director')?.name || "Unknown",
+        genres: details.genres.map(g => g.name),
+        runtime: details.runtime,
+        rating: details.vote_average,
+        plot: details.overview,
+        cast: details.credits.cast.slice(0, 10).map(actor => actor.name) // limit to 10 actors
+      };
+
+      setSelectedMovie(movieData); // Set movie details
+    } catch (err) {
+      console.error("Error fetching movie details:", err);
+      setError("Could not fetch movie details."); // Handle errors
+    }
+  };
+
+  const handleCloseDetails = () => {
+    setSelectedMovie(null); // Close the MovieDetails modal
   };
 
   const handleSubmitPreferences = async (preferences) => {
@@ -99,22 +118,28 @@ function App() {
   };
 
   const handleSelectItem = async (item) => {
+    if (!item) return;
+  
     try {
-      setLoading(true);
-      const mediaType = item.title ? 'movie' : 'tv';
-
-      const details = await apiService.getDetails(item.id, mediaType);
-      setSelectedItem(details);
-      setLoading(false);
-    } catch (err) {
-      console.error('Error fetching item details:', err);
-      setError(`Failed to load details: ${err.message}`);
-      setLoading(false);
+      const details = await apiService.getDetails(item.id, item.media_type || 'movie');
+  
+      const formattedDetails = {
+        title: details.title || details.name,
+        releaseDate: details.release_date || details.first_air_date,
+        poster: details.poster_path ? `https://image.tmdb.org/t/p/w500${details.poster_path}` : null,
+        director: details.credits?.crew?.find(member => member.job === 'Director')?.name || "Unknown",
+        genres: details.genres ? details.genres.map(g => g.name) : [],
+        runtime: details.runtime || details.episode_run_time?.[0],
+        rating: details.vote_average,
+        plot: details.overview,
+        cast: details.credits?.cast ? details.credits.cast.slice(0, 10).map(actor => actor.name) : [],
+      };
+  
+      setSelectedItem(formattedDetails); // Store detailed movie info
+    } catch (error) {
+      console.error("Error fetching item details:", error);
+      setError("Could not load details. Please try again.");
     }
-  };
-
-  const handleCloseDetails = () => {
-    setSelectedItem(null);
   };
 
   return (
@@ -166,61 +191,9 @@ function App() {
           )}
         </section>
 
-        {/* Details Modal */}
+        {/* Movie Details Modal */}
         {selectedItem && (
-          <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg max-w-4xl w-full max-h-screen overflow-y-auto">
-              <div className="p-6">
-                <div className="flex justify-between items-start">
-                  <h2 className="text-2xl font-bold">{selectedItem.title || selectedItem.name}</h2>
-                  <button onClick={handleCloseDetails} className="text-gray-500 hover:text-gray-800">
-                    Close
-                  </button>
-                </div>
-
-                <div className="mt-4 flex flex-col md:flex-row gap-6">
-                  <div className="md:w-1/3">
-                    <img
-                      src={
-                        selectedItem.poster_path
-                          ? `https://image.tmdb.org/t/p/w500${selectedItem.poster_path}`
-                          : '/api/placeholder/300/450'
-                      }
-                      alt={selectedItem.title || selectedItem.name}
-                      className="w-full rounded-lg shadow-md"
-                    />
-                  </div>
-
-                  <div className="md:w-2/3">
-                    <p className="text-gray-700 mb-4">{selectedItem.overview}</p>
-
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <h3 className="font-semibold">Release Date</h3>
-                        <p>{selectedItem.release_date || selectedItem.first_air_date || 'Unknown'}</p>
-                      </div>
-                      <div>
-                        <h3 className="font-semibold">Rating</h3>
-                        <p>{selectedItem.vote_average ? `${selectedItem.vote_average.toFixed(1)}/10` : 'Not rated'}</p>
-                      </div>
-                    </div>
-
-                    <div className="mb-4">
-                      <h3 className="font-semibold mb-2">Genres</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedItem.genres &&
-                          selectedItem.genres.map((genre) => (
-                            <span key={genre.id} className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                              {genre.name}
-                            </span>
-                          ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <MovieDetails movie={selectedItem} onClose={handleCloseDetails} />
         )}
       </main>
 

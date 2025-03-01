@@ -4,6 +4,14 @@ const API_BASE_URL = 'https://api.themoviedb.org/3';
 // Set API Key from environment variables
 let API_KEY = process.env.REACT_APP_TMDB_API_KEY || '';
 
+// API key function to set key before making requests
+const setApiKey = (key) => {
+    if (!key) {
+        throw new Error('API key is missing')
+    }
+    API_KEY = key;
+}
+
 /**
  * Constructs the request URL with the API key and any additional parameters
  * @param {string} endpoint - The API endpoint
@@ -138,7 +146,7 @@ const apiService = {
   getGenres,
   getTrending,
   set API_KEY(key) {
-    API_KEY = key;
+     setApiKey(key);
   }
 };
 
