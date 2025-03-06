@@ -19,53 +19,60 @@ const MovieCard = ({ item, onSelect }) => {
     ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
     : '/api/placeholder/300/450'; // Placeholder for missing images
   
-  // Generate a color for the rating badge based on score
-  const getRatingColor = (score) => {
-    if (score === 'NR') return 'bg-gray-500';
-    const numScore = parseFloat(score);
-    if (numScore >= 8) return 'bg-green-600';
-    if (numScore >= 6) return 'bg-yellow-500';
-    return 'bg-red-600';
-  };
-
   return (
     <div 
-      className="movie-card bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-200 hover:shadow-xl hover:scale-105 cursor-pointer"
+      className="movie-card"
       onClick={() => onSelect(item)}
     >
       {/* Poster Image */}
-      <div className="relative h-64 overflow-hidden">
-        <img 
-          src={imageUrl} 
-          alt={`${title} poster`}
-          className="w-full h-full object-cover"
-        />
+      <div className="relative">
+        {item.poster_path ? (
+          <img 
+            src={imageUrl} 
+            alt={`${title} poster`}
+            className="movie-poster"
+          />
+        ) : (
+          <div className="movie-poster-placeholder">
+            No Image
+          </div>
+        )}
+        
         {/* Rating Badge */}
-        <div className={`absolute top-2 right-2 ${getRatingColor(rating)} text-white text-sm font-bold py-1 px-2 rounded-full`}>
+        <div className="movie-rating" style={{
+          position: 'absolute',
+          top: '10px',
+          right: '10px',
+          backgroundColor: rating === 'NR' ? '#666' : 
+                          parseFloat(rating) >= 8 ? '#2c7a2c' : 
+                          parseFloat(rating) >= 6 ? '#b7950b' : '#a51d1d'
+        }}>
           {rating}
         </div>
       </div>
       
       {/* Content Section */}
-      <div className="p-4">
+      <div className="movie-info">
         {/* Title */}
-        <h3 className="font-bold text-lg mb-1 truncate" title={title}>
+        <h3 className="movie-title">
           {title}
         </h3>
         
         {/* Year */}
-        <p className="text-gray-600 text-sm mb-2">
+        <p className="movie-year">
           {formattedDate}
         </p>
         
-        {/* Genre Tags - assuming genre_ids are matched elsewhere */}
-        <div className="flex flex-wrap gap-1">
-          {item.genre_ids && item.genre_ids.slice(0, 3).map(genreId => (
-            <span key={genreId} className="bg-gray-200 text-xs px-2 py-1 rounded">
-              {genreId}
-            </span>
-          ))}
-        </div>
+        {/* Genre Tags - matching the style in CSS */}
+        {item.genre_ids && item.genre_ids.length > 0 && (
+          <div className="movie-genres">
+            {item.genre_ids.slice(0, 3).map((genreId, index) => (
+              <span key={genreId} className="movie-genre">
+                {genreId}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

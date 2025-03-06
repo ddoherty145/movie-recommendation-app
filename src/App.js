@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import PreferencesForm from './components/PreferencesForm';
+import MovieList from './components/MovieList';
+import SearchBar from './components/SearchBar';
+import MovieDetail from './components/MovieDetail';
 import MovieCard from './components/MovieCard';
 import apiService from './services/api';
-import SearchBar from './components/SearchBar';
-import MovieDetails from './components/MovieDetail'; 
-import MovieList from './components/MovieList'; 
+import './App.css';
 
 // Replace with your actual API key
 const API_KEY = process.env.REACT_APP_TMDB_API_KEY;
@@ -97,22 +98,32 @@ function App() {
 
   const handleSelectItem = async (item) => {
     if (!item) return;
-  
+
     try {
-      const details = await apiService.getDetails(item.id, item.media_type || 'movie');
-  
+      // Determine the media type (default to 'movie' if not specified)
+      const mediaType = item.media_type || (item.title ? 'movie' : 'tv');
+      
+      // Fetch the details using the correct media type
+      const details = await apiService.getDetails(item.id, mediaType);
+
+      // Format the details for the MovieDetail component
       const formattedDetails = {
+        // Keep the original item data
+        ...item,
+        // Add or override with detailed information
         title: details.title || details.name,
         releaseDate: details.release_date || details.first_air_date,
-        poster: details.poster_path ? `https://image.tmdb.org/t/p/w500${details.poster_path}` : null,
+        // Don't construct the full URL here - just pass the poster_path
+        poster_path: details.poster_path,
+        backdrop_path: details.backdrop_path,
         director: details.credits?.crew?.find(member => member.job === 'Director')?.name || "Unknown",
         genres: details.genres ? details.genres.map(g => g.name) : [],
         runtime: details.runtime || details.episode_run_time?.[0],
-        rating: details.vote_average,
-        plot: details.overview,
+        vote_average: details.vote_average,
+        overview: details.overview,
         cast: details.credits?.cast ? details.credits.cast.slice(0, 10).map(actor => actor.name) : [],
       };
-  
+
       setSelectedItem(formattedDetails); // Store detailed movie info
     } catch (error) {
       console.error("Error fetching item details:", error);
@@ -139,16 +150,15 @@ function App() {
   };
 
   return (
-    <div className="app min-h-screen bg-gray-50">
-      <header className="bg-blue-600 text-white text-center py-6">
-        <h1 className="text-3xl font-bold">Movie & TV Recommendations</h1>
-        <p className="mt-2">Find your next favorite watch</p>
+    <div className="app-container">
+      <header className="header">
+        <h1 className="app-title">The Next Flick 🎥📼🍿</h1>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="main-content">
         {API_KEY === 'YOUR_TMDB_API_KEY' && (
-          <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
-            <p className="font-bold">API Key Missing</p>
+          <div className="api-warning">
+            <p className="warning-title">API Key Missing</p>
             <p>Please set your TMDB API key in the .env file as REACT_APP_TMDB_API_KEY=your_key_here</p>
           </div>
         )}
@@ -159,29 +169,22 @@ function App() {
         {/* Preferences Form */}
         <PreferencesForm onSubmitPreferences={handleSubmitPreferences} />
 
-        {/* Error Display */}
-        {error && (
-          <div className="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-            <p>{error}</p>
-          </div>
-        )}
-
         {/* Show detailed view or list view */}
         {selectedItem ? (
-          <MovieDetails movie={selectedItem} onClose={handleCloseDetails} />
+          <MovieDetail movie={selectedItem} onClose={handleCloseDetails} />
         ) : (
-          <section className="mt-8">
+          <section className="content-section">
             {/* View Selection Tabs */}
             {searchResults.length > 0 && (
-              <div className="flex mb-4 border-b">
+              <div className="view-tabs">
                 <button 
-                  className={`px-4 py-2 ${activeView === 'recommendations' ? 'text-blue-600 border-b-2 border-blue-600 font-medium' : 'text-gray-500'}`}
+                  className={`tab-button ${activeView === 'recommendations' ? 'active' : ''}`}
                   onClick={() => setActiveView('recommendations')}
                 >
                   Recommendations
                 </button>
                 <button 
-                  className={`px-4 py-2 ${activeView === 'search' ? 'text-blue-600 border-b-2 border-blue-600 font-medium' : 'text-gray-500'}`}
+                  className={`tab-button ${activeView === 'search' ? 'active' : ''}`}
                   onClick={() => setActiveView('search')}
                 >
                   Search Results
@@ -190,8 +193,8 @@ function App() {
             )}
 
             {loading ? (
-              <div className="text-center py-12">
-                <p className="text-gray-600">Loading...</p>
+              <div className="loading-state">
+                <div className="loading-spinner"></div>
               </div>
             ) : (
               <>
@@ -204,14 +207,18 @@ function App() {
                   />
                 ) : (
                   <>
-                    <h2 className="text-2xl font-bold mb-4">
-                      {recommendations.length > 0 ? 'Recommendations' : 'Start by searching or selecting your preferences'}
-                    </h2>
+                    <div className="movie-list-container">
+                      <h2>
+                        {recommendations.length > 0 
+                          ? 'Recommended For You' 
+                          : 'Start by searching or selecting your preferences'}
+                      </h2>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                      {getEnhancedMovieData(recommendations).map((item) => (
-                        <MovieCard key={item.id} item={item} onSelect={handleSelectItem} />
-                      ))}
+                      <div className="movie-list-grid">
+                        {getEnhancedMovieData(recommendations).map((item) => (
+                          <MovieCard key={item.id} item={item} onSelect={handleSelectItem} />
+                        ))}
+                      </div>
                     </div>
                   </>
                 )}
@@ -221,7 +228,7 @@ function App() {
         )}
       </main>
 
-      <footer className="bg-gray-800 text-white text-center py-6 mt-12">
+      <footer className="footer">
         <p>Data provided by TMDB</p>
       </footer>
     </div>

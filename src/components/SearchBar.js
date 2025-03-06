@@ -1,31 +1,31 @@
-import React from "react";
+import React, { useState } from 'react';
 
 const SearchBar = ({ onSearch }) => {
-    const [searchTerm, setSearchTerm] = React.useState("");
+  const [query, setQuery] = useState('');
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (searchTerm.trim()) {
-            onSearch(searchTerm);
-        }
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (query.trim()) {
+      onSearch(query);
     }
+  };
 
-    return (
-        <div className="search-container">
-          <form onSubmit={handleSubmit}>
-            <input
-              type="text"
-              placeholder="Search for movies..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
-            />
-            <button type="submit" className="search-button">
-              Search
-            </button>
-          </form>
-        </div>
-      );
-    };
-    
-    export default SearchBar;
+  return (
+    <div className="search-container">
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          className="search-input"
+          placeholder="Search for movies, TV shows, actors..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        <button type="submit" className="btn btn-primary search-button">
+          Search
+        </button>
+      </form>
+    </div>
+  );
+};
+
+export default SearchBar;

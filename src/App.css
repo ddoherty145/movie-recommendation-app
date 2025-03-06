@@ -1,38 +1,201 @@
-.App {
-  text-align: center;
+/* Color Variables */
+:root {
+  --primary-color: #e50914; /* Netflix-inspired red */
+  --secondary-color: #141414; /* Dark background */
+  --text-color: #ffffff;
+  --card-bg-color: #222222;
+  --hover-color: #ff424f;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+/* Global Styles */
+body {
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+  font-family: 'Roboto', 'Helvetica Neue', sans-serif;
+  margin: 0;
+  padding: 0;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+/* App Container */
+.app-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+/* Header Styling */
+.header {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 30px;
+}
+
+.app-title {
+  font-size: 28px;
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+/* Main Content */
+.main-content {
+  min-height: calc(100vh - 200px);
+}
+
+/* Search Bar */
+.search-container {
+  margin: 20px 0;
+  position: relative;
+}
+
+.search-input {
+  width: calc(100% - 120px);
+  padding: 12px 15px;
+  border-radius: 25px 0 0 25px;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-color);
+  font-size: 16px;
+}
+
+.search-button {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  border-radius: 0 25px 25px 0;
+  width: 120px;
+}
+
+.search-input:focus {
+  outline: none;
+  background-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 0 2px var(--primary-color);
+}
+
+/* API Warning */
+.api-warning {
+  background-color: rgba(255, 193, 7, 0.15);
+  border-left: 4px solid #ffc107;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 4px;
+}
+
+.warning-title {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+/* Content Section */
+.content-section {
+  margin-top: 30px;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 20px 0;
+  margin-top: 50px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Movie List Grid */
+.movie-list-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 25px;
+}
+
+/* Movie Card Styling */
+.movie-card {
+  background-color: var(--card-bg-color);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.movie-card:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+}
+
+.movie-poster {
+  width: 100%;
+  aspect-ratio: 2/3;
+  object-fit: cover;
+}
+
+.movie-poster-placeholder {
+  width: 100%;
+  aspect-ratio: 2/3;
+  background-color: #333;
+  display: flex;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  color: #666;
 }
 
-.App-link {
-  color: #61dafb;
+.movie-info {
+  padding: 12px;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.movie-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 5px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.movie-year {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.movie-rating {
+  display: inline-block;
+  background-color: var(--primary-color);
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: bold;
+  margin-top: 5px;
+}
+
+.movie-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 5px;
+}
+
+.movie-genre {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.movie-genre:not(:last-child)::after {
+  content: '•';
+  margin-left: 4px;
+}
+
+/* Movie Detail View */
+.movie-detail {
+  position: relative;
+  background-color: var(--card-bg-color);
+  border-radius: 12px;
+  padding: 25px;
+  margin-top: 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.movie-backdrop {
+  position: absolute;
+
 }

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './PreferencesForm.css';
 
 const PreferencesForm = ({ onSubmitPreferences }) => {
     const [preferences, setPreferences] = useState({
@@ -57,51 +58,46 @@ const PreferencesForm = ({ onSubmitPreferences }) => {
     };
 
     return (
-        <div className="preferences-form p-4 bg-gray-100 rounded-lg">
-            <h2 className="text-xl font-bold mb-4">Find the Next Perfect Movie/TV Show to Watch</h2>
+        <div className="preferences-form">
+            <h2>Find Your Perfect Watch</h2>
 
             <form onSubmit={handleSubmit}>
-                <div className="mb-4">
-                    {/* Media type */}
-                    <label className="block mb-2 font-medium">What are you in the mood for?</label>
-                    <div className="flex gap-4">
-                        <label className="flex items-center gap-2">
+                <div className="form-group">
+                    <label>What are you in the mood for?</label>
+                    <div className="media-type-container">
+                        <label className="media-type-option">
                             <input
                                 type="radio"
                                 name="mediaType"
                                 value="movie"
                                 checked={preferences.mediaType === 'movie'}
                                 onChange={handleChange}
-                                className="mr-2"
                             />
                             Movie
                         </label>
-                        <label className="flex items-center gap-2">
+                        <label className="media-type-option">
                             <input
                                 type="radio"
                                 name="mediaType"
                                 value="tv"
                                 checked={preferences.mediaType === 'tv'}
                                 onChange={handleChange}
-                                className="mr-2"
                             />
                             TV Show
                         </label>
                     </div>
                 </div>
 
-                {/* Genres */}
-                <div className="mb-4">
-                    <label className="block mb-2 font-medium">Select Genres (multiple allowed)</label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                <div className="form-group">
+                    <label>Select Genres</label>
+                    <div className="genre-grid">
                         {genreOptions.map((genre) => (
-                            <label key={genre.id} className="flex items-center gap-2">
+                            <label key={genre.id} className="genre-item">
                                 <input
                                     type="checkbox"
                                     value={genre.id}
                                     checked={preferences.genres.includes(genre.id)}
                                     onChange={handleGenreChange}
-                                    className="mr-2"
                                 />
                                 {genre.name}
                             </label>
@@ -109,12 +105,11 @@ const PreferencesForm = ({ onSubmitPreferences }) => {
                     </div>
                 </div>
 
-                {/* Year range */}
-                <div className="mb-4">
-                    <label className="block mb-2 font-medium">Release Year Range</label>
-                    <div className="flex gap-4">
+                <div className="form-group">
+                    <label>Release Year Range</label>
+                    <div className="year-range">
                         <div>
-                            <label className="block mb-1 text-sm">From</label>
+                            <label>From</label>
                             <input
                                 type="number"
                                 name="yearFrom"
@@ -122,11 +117,10 @@ const PreferencesForm = ({ onSubmitPreferences }) => {
                                 max="2025"
                                 value={preferences.yearFrom}
                                 onChange={handleChange}
-                                className="p-2 border rounded w-full"
                             />
                         </div>
                         <div>
-                            <label className="block mb-1 text-sm">To</label>
+                            <label>To</label>
                             <input
                                 type="number"
                                 name="yearTo"
@@ -134,17 +128,12 @@ const PreferencesForm = ({ onSubmitPreferences }) => {
                                 max="2025"
                                 value={preferences.yearTo}
                                 onChange={handleChange}
-                                className="p-2 border rounded w-full"
                             />
                         </div>
                     </div>
                 </div>
 
-                {/* Minimum rating Slider */}
-                <div className="mb-4">
-                    <label className="block mb-2 font-medium">
-                        Minimum Rating: {preferences.minRating}/10
-                    </label>
+                <div className="form-group slider-container">
                     <input
                         type="range"
                         name="minRating"
@@ -153,28 +142,28 @@ const PreferencesForm = ({ onSubmitPreferences }) => {
                         step="0.5"
                         value={preferences.minRating}
                         onChange={handleChange}
-                        className="w-full"
                     />
+                    <div className="rating-label">
+                        <span>Minimum Rating</span>
+                        <span className="rating-value">{preferences.minRating}/10</span>
+                    </div>
                 </div>
 
-                {/* Adult Content */}
-                <div className="mb-4">
-                    <label className="flex items-center">
+                <div className="form-group">
+                    <label className="genre-item">
                         <input
                             type="checkbox"
                             name="includeAdult"
                             checked={preferences.includeAdult}
                             onChange={handleChange}
-                            className="mr-2"
                         />
                         Include adult content
                     </label>
                 </div>
 
-                {/* Submit button */}
                 <button
                     type="submit"
-                    className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition duration-200">
+                    className="submit-button">
                     Find Recommendations
                 </button>
             </form>
